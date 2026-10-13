@@ -54,7 +54,8 @@ Click the **Hashes** tab.
 2. In the first field row, type `name` and `John` as the field name and value.
 3. Click **+ Field** to add a second row. Type `role` and `admin`.
 4. Click **HSET**. The result shows `HSET demo:user -> 2 fields`. The entry appears in the table with type `hash`.
-5. Click **HGETALL**. The result shows all fields: `{name="John", role="admin"}`.
+5. Check the **Event Log** - it shows `HSET demo:user` in real time (Pub/Sub via SSE).
+6. Click **HGETALL**. The result shows all fields: `{name="John", role="admin"}`.
 
 ### 1.5 Counter operations (Counters tab)
 
@@ -63,6 +64,7 @@ Click the **Counters** tab.
 1. Type `demo:visits` in the **Key** field.
 2. Click **INCR** three times. Each click shows the incremented value: 1, 2, 3.
 3. Click **DECR** once. The value goes back to 2.
+4. Check the **Event Log** - each INCR/DECR generates a Pub/Sub event showing the updated value.
 
 ### 1.6 List all keys (Keys tab)
 
@@ -70,6 +72,8 @@ Click the **Keys** tab.
 
 1. Leave the pattern as `*` and click **KEYS**. All entries created so far are listed with a count.
 2. Change the pattern to `demo:*` and click **KEYS** again. Same result (all keys use the `demo:` prefix).
+
+Every write operation (SET, HSET, INCR, DECR, DEL) generates a Pub/Sub event visible in the Event Log. Read operations (GET, HGETALL, KEYS) do not.
 
 This establishes the baseline: a standard Spring Boot app using Jedis to talk to Redis. All operations (SET, GET, HSET, HGETALL, INCR, DECR, KEYS) work through the web UI.
 
@@ -146,8 +150,12 @@ Expected output:
 
 Refresh the browser. The connection cards now show the Data Grid endpoint (host: `healthcare`, port: `11222`).
 
+Keep the **external-cache-client terminal** visible alongside the browser. From this point on, every write operation generates Pub/Sub events visible in both places simultaneously.
+
 1. Type `demo:greeting` in the **Key** field and `hello from datagrid` in the **Value** field. Click **SET**.
-2. Type `demo:greeting` in Key and click **GET**. The result shows `GET demo:greeting -> "hello from datagrid"` with the remaining TTL.
+2. Check the **Event Log** in the web UI - it shows `SET demo:greeting` in real time.
+3. Check the **external-cache-client terminal** - the same event appears there. Two different frameworks (Spring Boot + Quarkus), same Pub/Sub channel, same Data Grid cluster.
+4. Type `demo:greeting` in Key and click **GET**. The result shows `GET demo:greeting -> "hello from datagrid"` with the remaining TTL.
 
 ### 3.4 Hash operations (Hashes tab)
 
@@ -157,7 +165,8 @@ Click the **Hashes** tab.
 2. In the first field row, type `name` and `Jane` as the field name and value.
 3. Click **+ Field** to add a second row. Type `role` and `doctor`.
 4. Click **HSET**. The result shows `HSET demo:user -> 2 fields`.
-5. Click **HGETALL**. The result shows all fields: `{name="Jane", role="doctor"}`.
+5. Check both the **Event Log** and the **external-cache-client terminal** - both show the `HSET demo:user` event.
+6. Click **HGETALL**. The result shows all fields: `{name="Jane", role="doctor"}`.
 
 ### 3.5 Counter operations (Counters tab)
 
@@ -165,24 +174,16 @@ Click the **Counters** tab.
 
 1. Type `demo:visits` in the **Key** field.
 2. Click **INCR** three times. The counter starts from 1 (this is a new counter in Data Grid, independent from the one created in Redis).
+3. Each INCR generates a Pub/Sub event visible in both the **Event Log** and the **external-cache-client terminal**.
 
 ### 3.6 List all keys (Keys tab)
 
 Click the **Keys** tab.
 
 1. Leave the pattern as `*` and click **KEYS**. All entries created in Data Grid are listed.
-2. DEL one entry from the table.
+2. DEL one entry from the table. The deletion event appears in both the **Event Log** and the **external-cache-client terminal**.
 
-All operations work identically. The app code did not change.
-
-### 3.7 Observe Pub/Sub across apps
-
-Watch two places simultaneously:
-
-- **redis-client-app web UI**: the Event Log at the bottom shows real-time events via SSE
-- **external-cache-client terminal**: the same Pub/Sub events are logged as they arrive
-
-Both apps receive events from the same Data Grid cluster. Two different frameworks (Spring Boot + Quarkus), same RESP protocol, same Pub/Sub channel.
+All operations work identically to Act 1. The app code did not change - only the backend endpoint was patched from Redis to Data Grid.
 
 ---
 
