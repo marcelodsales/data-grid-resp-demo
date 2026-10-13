@@ -142,21 +142,40 @@ Expected output:
 }
 ```
 
-### 3.3 Repeat the same operations in the web UI
+### 3.3 String operations (Strings tab)
 
 Refresh the browser. The connection cards now show the Data Grid endpoint (host: `healthcare`, port: `11222`).
 
-Repeat the same operations from Act 1:
+1. Type `demo:greeting` in the **Key** field and `hello from datagrid` in the **Value** field. Click **SET**.
+2. Type `demo:greeting` in Key and click **GET**. The result shows `GET demo:greeting -> "hello from datagrid"` with the remaining TTL.
 
-1. **Strings tab**: SET `demo:greeting` with value `hello from datagrid`. GET it back.
-2. **Hashes tab**: HSET `demo:user` with fields `name=Jane`, `role=doctor`. HGETALL to verify.
-3. **Counters tab**: INCR `demo:visits` a few times. Observe the counter incrementing from where it was (the previous counter was in Redis, this is a new counter in Data Grid).
-4. **Keys tab**: KEYS `*` to see all entries stored in Data Grid.
-5. DEL one entry from the table.
+### 3.4 Hash operations (Hashes tab)
+
+Click the **Hashes** tab.
+
+1. Type `demo:user` in the **Key** field.
+2. In the first field row, type `name` and `Jane` as the field name and value.
+3. Click **+ Field** to add a second row. Type `role` and `doctor`.
+4. Click **HSET**. The result shows `HSET demo:user -> 2 fields`.
+5. Click **HGETALL**. The result shows all fields: `{name="Jane", role="doctor"}`.
+
+### 3.5 Counter operations (Counters tab)
+
+Click the **Counters** tab.
+
+1. Type `demo:visits` in the **Key** field.
+2. Click **INCR** three times. The counter starts from 1 (this is a new counter in Data Grid, independent from the one created in Redis).
+
+### 3.6 List all keys (Keys tab)
+
+Click the **Keys** tab.
+
+1. Leave the pattern as `*` and click **KEYS**. All entries created in Data Grid are listed.
+2. DEL one entry from the table.
 
 All operations work identically. The app code did not change.
 
-### 3.4 Observe Pub/Sub across apps
+### 3.7 Observe Pub/Sub across apps
 
 Watch two places simultaneously:
 
