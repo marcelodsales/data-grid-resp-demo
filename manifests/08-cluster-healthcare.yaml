@@ -1,0 +1,23 @@
+apiVersion: infinispan.org/v1
+kind: Infinispan
+metadata:
+  name: healthcare
+  namespace: rhdg-poc
+  annotations:
+    infinispan.org/monitoring: "true"
+spec:
+  replicas: 2
+  version: 8.6.0-1
+  service:
+    type: DataGrid
+  container:
+    cpu: "500m"
+    memory: "1Gi"
+  security:
+    endpointSecretName: healthcare-credentials
+    endpointEncryption:
+      type: Secret
+      certSecretName: healthcare-tls
+  expose:
+    type: Route
+    host: respcache.apps.<your-cluster-domain>
