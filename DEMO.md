@@ -29,9 +29,9 @@ https://redis-client-app-rhdg-poc.apps.<your-cluster-domain>
 
 The top bar shows connection status (green dot = connected) and six cards: Cluster, Cache, Mode, Host, Port, Status.
 
-### 1.3 Create entries against Redis
+### 1.3 String operations (Strings tab)
 
-Use the form at the top of the page:
+The UI opens on the **Strings** tab by default.
 
 1. Type `demo:greeting` in the **Key** field and `hello from redis` in the **Value** field. Click **SET**.
 2. Type `demo:patient` in Key, `John Smith` in Value. Click **SET**.
@@ -39,13 +39,39 @@ Use the form at the top of the page:
 
 After each SET, observe:
 
-- The entry appears immediately in the **Cache Entries** table below the form
+- The entry appears immediately in the **Cache Entries** table below
 - The **Event Log** at the bottom shows the operation in real time (Pub/Sub via SSE)
 - The entry count updates automatically
 
-4. Select any entry and click its **DEL** button on the right side of the table. The entry disappears and a red event appears in the log.
+4. Type `demo:greeting` in Key and click **GET**. The result line shows `GET demo:greeting -> "hello from redis"` with the remaining TTL.
+5. Click **DEL** on any entry in the table. The entry disappears and a red event appears in the log.
 
-This establishes the baseline: a standard Spring Boot app using Jedis to talk to Redis. The UI uses only SET, GET, and DEL operations.
+### 1.4 Hash operations (Hashes tab)
+
+Click the **Hashes** tab.
+
+1. Type `demo:user` in the **Key** field.
+2. In the first field row, type `name` and `John` as the field name and value.
+3. Click **+ Field** to add a second row. Type `role` and `admin`.
+4. Click **HSET**. The result shows `HSET demo:user -> 2 fields`. The entry appears in the table with type `hash`.
+5. Click **HGETALL**. The result shows all fields: `{name="John", role="admin"}`.
+
+### 1.5 Counter operations (Counters tab)
+
+Click the **Counters** tab.
+
+1. Type `demo:visits` in the **Key** field.
+2. Click **INCR** three times. Each click shows the incremented value: 1, 2, 3.
+3. Click **DECR** once. The value goes back to 2.
+
+### 1.6 List all keys (Keys tab)
+
+Click the **Keys** tab.
+
+1. Leave the pattern as `*` and click **KEYS**. All entries created so far are listed with a count.
+2. Change the pattern to `demo:*` and click **KEYS** again. Same result (all keys use the `demo:` prefix).
+
+This establishes the baseline: a standard Spring Boot app using Jedis to talk to Redis. All operations (SET, GET, HSET, HGETALL, INCR, DECR, KEYS) work through the web UI.
 
 ---
 
@@ -122,10 +148,11 @@ Refresh the browser. The connection cards now show the Data Grid endpoint (host:
 
 Repeat the same operations from Act 1:
 
-1. SET `demo:greeting` with value `hello from datagrid`
-2. SET `demo:patient` with value `Jane Doe`
-3. SET `demo:room` with value `ER-07`
-4. DEL one of the entries
+1. **Strings tab**: SET `demo:greeting` with value `hello from datagrid`. GET it back.
+2. **Hashes tab**: HSET `demo:user` with fields `name=Jane`, `role=doctor`. HGETALL to verify.
+3. **Counters tab**: INCR `demo:visits` a few times. Observe the counter incrementing from where it was (the previous counter was in Redis, this is a new counter in Data Grid).
+4. **Keys tab**: KEYS `*` to see all entries stored in Data Grid.
+5. DEL one entry from the table.
 
 All operations work identically. The app code did not change.
 
@@ -157,7 +184,7 @@ Log in with the `ops-admin` credentials defined in `manifests/03-healthcare-cred
 Navigate to:
 
 1. **Data Container** - verify both nodes are online and healthy
-2. **respCache** - open the cache and inspect the entries created from the web UI (`demo:greeting`, `demo:patient`, `demo:room`)
+2. **respCache** - open the cache and inspect the entries created from the web UI (`demo:greeting`, `demo:user`, `demo:visits`)
 3. **Cache metrics** - observe hit/miss ratios, entry count, memory usage
 
 The operations team can monitor cache contents, cluster health, and metrics without needing access to the application pods.
